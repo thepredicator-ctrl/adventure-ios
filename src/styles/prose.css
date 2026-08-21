@@ -1,0 +1,12 @@
+.prose-invert {
+  color: rgba(229, 229, 231, 0.75);
+  line-height: 1.7;
+}
+.prose-invert p { margin: 0 0 1em; }
+.prose-invert code {
+  background: rgba(0,0,0,0.4);
+  border-radius: 4px;
+  padding: 0.125em 0.375em;
+  font-size: 0.9em;
+  color: #f0abfc;
+}
