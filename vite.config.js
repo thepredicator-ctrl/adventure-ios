@@ -1,10 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// GitHub Pages serves this repo at /Adventure/, so all asset URLs must be
-// prefixed with that base. For local dev, `npm run dev` still works on /.
+// GitHub Pages needs /Adventure/ prefix, but Capacitor iOS loads from
+// local filesystem so it must use relative paths.  Set IOS_BUILD=true
+// (or the CI will do it) when building for iOS.
+const iosBuild = !!process.env.IOS_BUILD;
+
 export default defineConfig({
-  base: '/Adventure/',
+  base: iosBuild ? './' : '/Adventure/',
   plugins: [react()],
   build: {
     outDir: 'dist',

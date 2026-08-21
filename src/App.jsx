@@ -8,6 +8,7 @@ import Topography from './components/Topography.jsx';
 import Toast from './components/Toast.jsx';
 import LoadingScreen from './components/LoadingScreen.jsx';
 import OfflineDownloadScreen from './components/OfflineDownloadScreen.jsx';
+import VideoBackground from './components/VideoBackground.jsx';
 import { SECTIONS } from './data/sections.js';
 import { THEMES } from './data/themes.js';
 
@@ -38,8 +39,13 @@ function AppShell() {
         <OfflineDownloadScreen onComplete={() => setOfflineDone(true)} />
       )}
 
+      {/* Video background (if enabled) */}
+      {global.settings.videoBg && global.settings.videoBgUrl && (
+        <VideoBackground url={global.settings.videoBgUrl} opacity={global.settings.videoBgOpacity ?? 0.35} />
+      )}
+
       {/* Topographic background */}
-      <div className="pointer-events-none fixed inset-0 z-0 opacity-60">
+      <div className={`pointer-events-none fixed inset-0 z-0 ${global.settings.videoBg && global.settings.videoBgUrl ? 'opacity-20' : 'opacity-60'}`}>
         <Topography
           key={theme.id}
           lowColor={theme.topography.lowColor}

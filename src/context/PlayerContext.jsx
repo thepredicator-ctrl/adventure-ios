@@ -18,7 +18,7 @@ const DEFAULT_GLOBAL = {
   serversTried: [],
   themesTried: [],
   showsVisited: [],
-  settings: { defaultServer: 1, crtEffect: true }
+  settings: { defaultServer: 1, crtEffect: true, videoBg: false, videoBgUrl: '' }
 };
 
 export function PlayerProvider({ children }) {
@@ -126,6 +126,7 @@ export function PlayerProvider({ children }) {
     }));
   }, []);
   const setSettings = useCallback((patch) => setGlobal(g => ({ ...g, settings: { ...g.settings, ...patch } })), []);
+  const setVideoBgUrl = useCallback((url) => setGlobal(g => ({ ...g, settings: { ...g.settings, videoBgUrl: url } })), []);
 
   // Jump directly to any (showIndex, season, episode) — used by Continue Watching rail.
   const jumpTo = useCallback((showId, season, episode) => {
@@ -262,7 +263,7 @@ export function PlayerProvider({ children }) {
     // derived
     currentServer, videoUrl, stats,
     // nav
-    selectShow, setSeason, setEpisode, setServer, setAutoplay, setTheme, setSettings,
+    selectShow, setSeason, setEpisode, setServer, setAutoplay, setTheme, setSettings, setVideoBgUrl,
     gotoNext, gotoPrev, markCurrentWatched, jumpTo,
     // resets
     resetAllProgress, resetCurrentShow,

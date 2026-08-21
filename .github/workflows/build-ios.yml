@@ -28,8 +28,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build web app
+      - name: Build web app (iOS)
         run: npm run build
+        env:
+          IOS_BUILD: "true"
 
       - name: Install Capacitor iOS
         run: npm install @capacitor/ios

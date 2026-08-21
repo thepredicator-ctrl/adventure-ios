@@ -38,6 +38,14 @@ export const THEMES = [
     swatch: ['#000000', '#2a2a2a', '#808080', '#dcdcdc'],
     sidebar:   { accent: '#dcdcdc', text: '#b0b0b0', marker: '#454545' },
     topography: { lowColor: '#000000', midColor: '#2a2a2a', highColor: '#dcdcdc' }
+  },
+  {
+    id: 'glass',
+    name: 'GLASS',
+    glass: true,
+    swatch: ['#0a1628', '#1a3050', '#5ac8fa', '#e8f4ff'],
+    sidebar:   { accent: '#5ac8fa', text: '#b8dce8', marker: '#1a3050' },
+    topography: { lowColor: '#0a1628', midColor: '#1a4a6e', highColor: '#5ac8fa' }
   }
 ];
 
