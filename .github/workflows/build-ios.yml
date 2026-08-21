@@ -20,7 +20,7 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Check Node version
+      - name: Check Node
         run: |
           node --version
           npm --version
@@ -34,31 +34,36 @@ jobs:
       - name: Install Capacitor iOS
         run: npm install @capacitor/ios
 
-      - name: Sync Capacitor iOS
+      - name: Sync Capacitor
         run: npx cap sync ios
 
+      - name: Check iOS project
+        run: |
+          echo "Contents of ios/App:"
+          ls -la ios/App
+          echo ""
+          echo "Xcode projects:"
+          find ios -name "*.xcodeproj" -o -name "*.xcworkspace"
+
       - name: Build unsigned iOS app
-        working-directory: ios/App
         run: |
           xcodebuild \
-            -workspace App.xcworkspace \
+            -project ios/App/App.xcodeproj \
             -scheme App \
             -configuration Release \
             -sdk iphoneos \
-            -derivedDataPath build \
+            -derivedDataPath ios/App/build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            build
+            CODE_SIGN_IDENTITY=""
 
-      - name: Create unsigned IPA
-        working-directory: ios/App
+      - name: Create IPA
         run: |
           mkdir -p Payload
 
-          cp -R "build/Build/Products/Release-iphoneos/App.app" Payload/App.app
-
-          rm -f Adventure.ipa
+          cp -R \
+            ios/App/build/Build/Products/Release-iphoneos/App.app \
+            Payload/App.app
 
           zip -r Adventure.ipa Payload
 
@@ -66,5 +71,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Adventure-iOS-IPA
-          path: ios/App/Adventure.ipa
+          path: Adventure.ipa
           if-no-files-found: error
