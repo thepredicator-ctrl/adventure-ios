@@ -1,5 +1,45 @@
 {
   "appId": "com.neth.adventure",
   "appName": "adventure",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "allowNavigation": [
+      "vidsrc.in",
+      "vidsrc.me",
+      "vidsrc.io",
+      "vidsrc.ir",
+      "vidsrc.tw",
+      "vidsrc2.ru",
+      "vidsrc-me.ru",
+      "vidsrcme.ru",
+      "vidsrcme.su",
+      "vidcore.org",
+      "superembed.stream",
+      "2embed.org",
+      "2embed.cc",
+      "fsapi.xyz",
+      "*.vidsrc.in",
+      "*.vidsrc.me",
+      "*.vidsrc.io",
+      "*.vidsrc.ir",
+      "*.vidsrc.tw",
+      "*.vidsrc2.ru",
+      "*.vidsrc-me.ru",
+      "*.vidsrcme.ru",
+      "*.vidsrcme.su",
+      "*.vidcore.org",
+      "*.superembed.stream",
+      "*.2embed.org",
+      "*.2embed.cc",
+      "*.fsapi.xyz"
+    ],
+    "cleartext": true
+  },
+  "ios": {
+    "allowsInlineMediaPlayback": true,
+    "backgroundColor": "#000000"
+  },
+  "android": {
+    "backgroundColor": "#000000"
+  }
 }

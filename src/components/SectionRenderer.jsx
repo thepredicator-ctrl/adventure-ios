@@ -2,14 +2,17 @@ import { lazy, Suspense } from 'react';
 import LaserWindow from './LaserWindow.jsx';
 
 const SECTION_MAP = {
-  Player:    lazy(() => import('../sections/Player.jsx')),
-  Episodes:  lazy(() => import('../sections/Episodes.jsx')),
-  Shows:     lazy(() => import('../sections/Shows.jsx')),
-  Stats:     lazy(() => import('../sections/Stats.jsx')),
-  Awards:    lazy(() => import('../sections/Awards.jsx')),
-  Themes:    lazy(() => import('../sections/Themes.jsx')),
-  Settings:  lazy(() => import('../sections/Settings.jsx')),
-  Shortcuts: lazy(() => import('../sections/Shortcuts.jsx'))
+  Player:         lazy(() => import('../sections/Player.jsx')),
+  Episodes:       lazy(() => import('../sections/Episodes.jsx')),
+  Shows:          lazy(() => import('../sections/Shows.jsx')),
+  Stats:          lazy(() => import('../sections/Stats.jsx')),
+  Awards:         lazy(() => import('../sections/Awards.jsx')),
+  Themes:         lazy(() => import('../sections/Themes.jsx')),
+  Settings:       lazy(() => import('../sections/Settings.jsx')),
+  Shortcuts:      lazy(() => import('../sections/Shortcuts.jsx')),
+  'Adventure Mode': lazy(() => import('../sections/AdventureMode.jsx')),
+  'Adventure AI':   lazy(() => import('../sections/AdventureAI.jsx')),
+  Developer:      lazy(() => import('../sections/DeveloperMode.jsx')),
 };
 
 export default function SectionRenderer({ section }) {
@@ -22,7 +25,7 @@ export default function SectionRenderer({ section }) {
       fallback={
         <LaserWindow>
           <div className="flex h-40 items-center justify-center text-white/40">
-            <span className="animate-pulse">Loading…</span>
+            <span className="animate-pulse">Loading...</span>
           </div>
         </LaserWindow>
       }

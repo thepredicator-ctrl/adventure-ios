@@ -9,6 +9,7 @@ import Toast from './components/Toast.jsx';
 import LoadingScreen from './components/LoadingScreen.jsx';
 import OfflineDownloadScreen from './components/OfflineDownloadScreen.jsx';
 import VideoBackground from './components/VideoBackground.jsx';
+import AdShield from './components/AdShield.jsx';
 import { SECTIONS } from './data/sections.js';
 import { THEMES } from './data/themes.js';
 
@@ -17,56 +18,59 @@ function AppShell() {
   const [booted, setBooted] = useState(false);
   const [offlineDone, setOfflineDone] = useState(false);
   const { global } = usePlayer();
-  // Fall back to THEMES[0] if the persisted theme id is from the old
-  // colored palette and no longer exists.
   const theme = THEMES.find(t => t.id === global.theme) ?? THEMES[0];
+  const s = global.settings;
+  const hasVideoBg = s.videoBg && s.videoBgUrl;
+  const animIntensity = s.animationIntensity ?? 1.0;
+  const contourIntensity = s.contourIntensity ?? 0.6;
+  const reducedMotion = s.reducedMotion ?? false;
 
   const handleItemClick = useCallback(index => setActive(index), []);
   const label = SECTIONS[active]?.label ?? 'Player';
 
-  // Apply data-theme to <html> for any CSS that keys off it.
   useEffect(() => {
     document.documentElement.dataset.theme = theme.id;
   }, [theme.id]);
 
-  return (
-    <div className="relative min-h-screen overflow-hidden bg-black text-white">
-      {/* Boot / loading screen — shows on first load, fades out */}
-      {!booted && <LoadingScreen onComplete={() => setBooted(true)} />}
+  // Apply reduced motion globally
+  useEffect(() => {
+    if (reducedMotion) document.documentElement.style.setProperty('--anim-duration', '0s');
+    else document.documentElement.style.removeProperty('--anim-duration');
+  }, [reducedMotion]);
 
-      {/* Offline download prompt — shows after boot, before main app */}
+  return (
+    <AdShield>
+    <div className="relative min-h-screen overflow-hidden bg-black text-white">
+      {!booted && <LoadingScreen onComplete={() => setBooted(true)} />}
       {booted && !offlineDone && (
         <OfflineDownloadScreen onComplete={() => setOfflineDone(true)} />
       )}
 
-      {/* Video background (if enabled) */}
-      {global.settings.videoBg && global.settings.videoBgUrl && (
-        <VideoBackground url={global.settings.videoBgUrl} opacity={global.settings.videoBgOpacity ?? 0.35} />
+      {hasVideoBg && (
+        <VideoBackground url={s.videoBgUrl} opacity={s.videoBgOpacity ?? 0.35} />
       )}
 
-      {/* Topographic background */}
-      <div className={`pointer-events-none fixed inset-0 z-0 ${global.settings.videoBg && global.settings.videoBgUrl ? 'opacity-20' : 'opacity-60'}`}>
+      <div className={`pointer-events-none fixed inset-0 z-0 ${hasVideoBg ? 'opacity-20' : 'opacity-60'}`}>
         <Topography
           key={theme.id}
           lowColor={theme.topography.lowColor}
           midColor={theme.topography.midColor}
           highColor={theme.topography.highColor}
-          speed={0.25}
+          speed={0.25 * animIntensity}
           morphAmount={3.0}
           bands={2.4}
           thickness={0.012}
-          glow={0.6}
+          glow={0.6 * contourIntensity}
           colorMode="elevation"
           contrast={2.6}
           brightness={0.9}
-          opacity={0.85}
+          opacity={0.85 * contourIntensity}
           grain
           grainIntensity={0.04}
           mouseInteraction={false}
         />
       </div>
 
-      {/* Vignette — neutral black & white */}
       <div
         className="pointer-events-none fixed inset-0 z-0"
         style={{
@@ -75,11 +79,11 @@ function AppShell() {
         }}
       />
 
-      {/* CRT scanlines */}
-      {global.settings.crtEffect && (
+      {s.crtEffect && (
         <div
-          className="pointer-events-none fixed inset-0 z-40 opacity-[0.08]"
+          className="pointer-events-none fixed inset-0 z-40"
           style={{
+            opacity: s.scanlineIntensity ?? 0.08,
             backgroundImage: 'repeating-linear-gradient(0deg, rgba(255,255,255,0.5) 0 1px, transparent 1px 3px)'
           }}
         />
@@ -95,6 +99,7 @@ function AppShell() {
 
       <Toast />
     </div>
+    </AdShield>
   );
 }
 
