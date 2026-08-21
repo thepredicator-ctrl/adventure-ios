@@ -11,4 +11,5 @@ export const SECTIONS = [
   { label: 'Adventure Mode', blurb: 'Generate curated episode routes by mood and preference.' },
   { label: 'Adventure AI',   blurb: 'Natural-language search, recommendations, and AI chat.' },
   { label: 'Developer',      blurb: 'Diagnostics, storage inspection, feature flags, logs.' },
+  { label: 'Terminal',       blurb: 'System interface with real-time library data.' },
 ];

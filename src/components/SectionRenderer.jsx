@@ -13,6 +13,7 @@ const SECTION_MAP = {
   'Adventure Mode': lazy(() => import('../sections/AdventureMode.jsx')),
   'Adventure AI':   lazy(() => import('../sections/AdventureAI.jsx')),
   Developer:      lazy(() => import('../sections/DeveloperMode.jsx')),
+  Terminal:       lazy(() => import('../sections/Terminal.jsx')),
 };
 
 export default function SectionRenderer({ section }) {

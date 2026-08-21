@@ -49,7 +49,7 @@ export default function Shortcuts() {
         </div>
       </div>
 
-      {/* Controller / Gamepad */
+      {/* Controller / Gamepad */}
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
         <div className="mb-3 text-sm font-medium text-white">Controller / Gamepad</div>
         <div className="overflow-hidden rounded-xl border border-white/10">

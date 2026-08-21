@@ -29,6 +29,7 @@ const DEFAULT_SETTINGS = {
   glassOpacity: 0.35,
   highContrast: false,
   developerMode: false,
+  dailyTransmission: true,
 };
 
 const DEFAULT_GLOBAL = {
@@ -97,7 +98,7 @@ export function PlayerProvider({ children }) {
   const [ratings, setRatings] = useState(() => lsGet(profileKey('ratings'), {}));
   const [adventureHistory, setAdventureHistory] = useState(() => lsGet(profileKey('adventureHistory'), []));
   const [savedAdventures, setSavedAdventures] = useState(() => lsGet(profileKey('savedAdventures'), []));
-  const [aiConfig, setAiConfig] = useState(() => lsGet(profileKey('aiConfig'), { provider: '', apiKey: '', model: '' }));
+  const [aiConfig, setAiConfig] = useState(() => lsGet(profileKey('aiConfig'), { provider: '', apiKey: '', model: '', temperature: 0.7, maxTokens: 512 }));
   const [devSettings, setDevSettings] = useState(() => lsGet(profileKey('devSettings'), { logging: false, experimental: [] }));
   const [playbackSpeed, setPlaybackSpeed] = useState(() => global.settings.defaultSpeed || 1);
   const [sessionStart, setSessionStart] = useState(Date.now());
@@ -576,6 +577,9 @@ export function PlayerProvider({ children }) {
       achievements: unlocked.length,
       watchHours: (wt.totalMs / 3600000).toFixed(1),
       streak: computeAchievementStats().streak,
+      totalWatched: watchedAll,
+      showsCompleted: computeAchievementStats().showsCompleted,
+      seasonsCompleted: computeAchievementStats().seasonsCompleted,
       favoritesCount: favorites.length,
       collectionsCount: collections.length,
       adventuresCount: adventureHistory.length,
@@ -613,9 +617,9 @@ export function PlayerProvider({ children }) {
     // Adventure
     generateAdventure, saveAdventure, deleteSavedAdventure,
     // AI
-    aiConfig, setAiConfig,
+    setAiConfig,
     // Dev
-    devSettings, setDevSettings,
+    setDevSettings,
     // Recommendations
     getRecommendations,
     // UI

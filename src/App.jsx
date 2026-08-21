@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { PlayerProvider, usePlayer } from './context/PlayerContext.jsx';
 import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
@@ -10,6 +10,8 @@ import LoadingScreen from './components/LoadingScreen.jsx';
 import OfflineDownloadScreen from './components/OfflineDownloadScreen.jsx';
 import VideoBackground from './components/VideoBackground.jsx';
 import AdShield from './components/AdShield.jsx';
+import DailyTransmission from './components/DailyTransmission.jsx';
+import CommandPalette from './components/CommandPalette.jsx';
 import { SECTIONS } from './data/sections.js';
 import { THEMES } from './data/themes.js';
 
@@ -17,6 +19,9 @@ function AppShell() {
   const [active, setActive] = useState(0);
   const [booted, setBooted] = useState(false);
   const [offlineDone, setOfflineDone] = useState(false);
+  const [showTransmission, setShowTransmission] = useState(false);
+  const [transmissionDone, setTransmissionDone] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const { global } = usePlayer();
   const theme = THEMES.find(t => t.id === global.theme) ?? THEMES[0];
   const s = global.settings;
@@ -26,6 +31,7 @@ function AppShell() {
   const reducedMotion = s.reducedMotion ?? false;
 
   const handleItemClick = useCallback(index => setActive(index), []);
+  const handleNavigate = useCallback(index => { setActive(index); }, []);
   const label = SECTIONS[active]?.label ?? 'Player';
 
   useEffect(() => {
@@ -38,12 +44,48 @@ function AppShell() {
     else document.documentElement.style.removeProperty('--anim-duration');
   }, [reducedMotion]);
 
+  // Show Daily Transmission after boot if enabled
+  useEffect(() => {
+    if (booted && offlineDone && !transmissionDone) {
+      if (s.dailyTransmission !== false) {
+        setShowTransmission(true);
+      } else {
+        setTransmissionDone(true);
+      }
+    }
+  }, [booted, offlineDone, transmissionDone, s.dailyTransmission]);
+
+  // Command Palette keyboard shortcut: Cmd+K / Ctrl+K
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(prev => !prev);
+      }
+      if (e.key === 'Escape' && commandPaletteOpen) {
+        setCommandPaletteOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [commandPaletteOpen]);
+
+  const handleTransmissionComplete = useCallback(() => {
+    setShowTransmission(false);
+    setTransmissionDone(true);
+  }, []);
+
   return (
     <AdShield>
     <div className="relative min-h-screen overflow-hidden bg-black text-white">
       {!booted && <LoadingScreen onComplete={() => setBooted(true)} />}
       {booted && !offlineDone && (
         <OfflineDownloadScreen onComplete={() => setOfflineDone(true)} />
+      )}
+
+      {/* Daily Transmission overlay */}
+      {showTransmission && !transmissionDone && (
+        <DailyTransmission onComplete={handleTransmissionComplete} />
       )}
 
       {hasVideoBg && (
@@ -98,6 +140,13 @@ function AppShell() {
       </div>
 
       <Toast />
+
+      {/* Command Palette overlay */}
+      <CommandPalette
+        open={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        onNavigate={handleNavigate}
+      />
     </div>
     </AdShield>
   );
