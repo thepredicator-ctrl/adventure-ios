@@ -66,7 +66,6 @@ export default function Player() {
               src={videoUrl}
               title={`${show.shortName} S${visibleSeason}E${global.episode}`}
               className="absolute inset-0 h-full w-full"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-popups allow-popups-to-escape-sandbox"
               referrerPolicy="no-referrer"
               allow="autoplay; fullscreen; encrypted-media; picture-in-picture; clipboard-write"
               allowFullScreen

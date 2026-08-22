@@ -9,7 +9,10 @@ import { useEffect, useRef } from 'react';
  * 2. Creates a MutationObserver that removes injected ad elements
  * 3. Wraps the iframe in a container that intercepts pointer events on
  *    common ad overlay positions
- * 4. Uses the iframe sandbox attribute to limit popup/popunder behavior
+ * 4. NOTE: The player iframe must NOT have a sandbox attribute —
+ *    many embed providers (vidsrc, 2embed, superembed, etc.) refuse to load
+ *    inside a sandboxed frame ("content can't be embedded in a sandboxed frame").
+ *    Popup/popunder blocking is handled by CSS and MutationObserver instead.
  */
 const AD_SELECTORS = [
   '[id*="ad-"]', '[id*="ad_"]', '[id*="ads"]',
