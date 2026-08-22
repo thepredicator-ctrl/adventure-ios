@@ -210,57 +210,53 @@ export async function sendChatRequest(providerId, apiKey, modelId, messages, opt
  * Build a system prompt with minimal relevant library context.
  * Only includes data necessary for the user's query type.
  */
+
 export function buildSystemPrompt(contextData) {
-  const {
-    shows = [],
-    watchHistory = [],
-    currentShow = null,
-    stats = {},
-    watchTime = {},
-  } = contextData;
+  const { shows = [], watchHistory = [], currentShow = null, stats = {}, watchTime = {}, aiMemory = [], missionControl = null } = contextData;
 
-  let prompt = `You are ADVENTURE AI, a minimal monochrome media terminal assistant.
-`;
-  prompt += `You understand the user's media library, watch history, statistics, and Adventures.
-`;
-  prompt += `Give short, precise, technical responses. Never fabricate statistics.
+  let prompt = 'You are ADVENTURE AI, a minimal monochrome media terminal assistant.\n';
+  prompt += 'You understand the user\'s media library, watch history, statistics, Adventures, Smart Rewatch, Show Analysis, and Mission Control.\n';
+  prompt += 'Give short, precise, technical responses. Never fabricate statistics.\n\n';
 
-`;
+  if (aiMemory && aiMemory.length > 0) {
+    prompt += 'USER PREFERENCES (from AI Memory):\n';
+    for (const mem of aiMemory) prompt += '- ' + mem.content + '\n';
+    prompt += '\n';
+  }
 
-  // Library summary
-  prompt += `LIBRARY STATUS:\n`;
+  if (missionControl) {
+    prompt += 'MISSION CONTROL STATUS:\n';
+    prompt += '- Current mission: ' + missionControl.currentMission + ' (' + missionControl.missionPct + '%)\n';
+    if (missionControl.missionNext) prompt += '- Next: S' + String(missionControl.missionNext.season).padStart(2,'0') + 'E' + String(missionControl.missionNext.episode).padStart(2,'0') + '\n';
+    prompt += '- Watch streak: ' + missionControl.streak + ' days\n';
+    prompt += '- AI status: ' + missionControl.aiStatus + '\n\n';
+  }
+
+  prompt += 'LIBRARY STATUS:\n';
   for (const s of shows) {
-    prompt += `- ${s.name}: ${s.totalEps} episodes across ${s.seasonCount} seasons. Watched: ${s.watchedCount}. Progress: ${s.progressPct}%\n`;
+    prompt += '- ' + s.name + ': ' + s.totalEps + ' episodes across ' + s.seasonCount + ' seasons. Watched: ' + s.watchedCount + '. Progress: ' + s.progressPct + '%\n';
   }
-  prompt += `\n`;
+  prompt += '\n';
 
-  // Current state
-  if (currentShow) {
-    prompt += `CURRENT: ${currentShow.name} S${currentShow.season}E${currentShow.episode}\n`;
-  }
+  if (currentShow) prompt += 'CURRENT: ' + currentShow.name + ' S' + currentShow.season + 'E' + currentShow.episode + '\n';
 
-  // Stats summary
   if (stats.totalWatched !== undefined) {
-    prompt += `STATS: ${stats.totalWatched} episodes watched, ${stats.watchHours}h total, `;
-    prompt += `${stats.streak}-day streak, ${stats.completionPct}% library complete\n`;
+    prompt += 'STATS: ' + stats.totalWatched + ' episodes watched, ' + stats.watchHours + 'h total, ';
+    prompt += stats.streak + '-day streak, ' + stats.completionPct + '% library complete\n';
   }
 
-  prompt += `
-You can return structured actions in your response using this format:
-`;
-  prompt += `ACTION: <action_name>\n`;
-  prompt += `<param>: <value>\n
-`;
-  prompt += `Supported actions: PLAY_EPISODE, OPEN_SHOW, ADD_TO_WATCHLIST, MARK_WATCHED, CREATE_ADVENTURE, OPEN_SECTION\n
-`;
-  prompt += `For PLAY_EPISODE, include SHOW_ID, SEASON, and EPISODE.\n`;
-  prompt += `For OPEN_SHOW, include SHOW_ID.\n`;
-  prompt += `For CREATE_ADVENTURE, include COUNT and optionally MOOD and GENRE.\n`;
-  prompt += `For OPEN_SECTION, include SECTION (one of: Terminal, Stats, Awards, Settings, Adventure Mode, Adventure AI).\n
-`;
-  prompt += `When recommending episodes, always include the show name, season, and episode number.\n`;
-  prompt += `If asked about duration, assume ~11 minutes for episodes and ~22 minutes for longer episodes.\n`;
-  prompt += `Respond in the same language the user uses.`;
+  prompt += '\nYou can return structured actions in your response using this format:\n';
+  prompt += 'ACTION: <action_name>\n';
+  prompt += '<param>: <value>\n\n';
+  prompt += 'Supported actions: PLAY_EPISODE, OPEN_SHOW, ADD_TO_WATCHLIST, MARK_WATCHED, CREATE_ADVENTURE, OPEN_SECTION, SMART_REWATCH, SHOW_ANALYSIS, MISSION_CONTROL\n\n';
+  prompt += 'For PLAY_EPISODE, include SHOW_ID, SEASON, and EPISODE.\n';
+  prompt += 'For OPEN_SHOW, include SHOW_ID.\n';
+  prompt += 'For CREATE_ADVENTURE, include COUNT and optionally MOOD and GENRE.\n';
+  prompt += 'For OPEN_SECTION, include SECTION name.\n';
+  prompt += 'For SMART_REWATCH, include MODE and COUNT.\n';
+  prompt += 'When recommending episodes, always include the show name, season, and episode number.\n';
+  prompt += 'If asked about duration, assume ~11 minutes for episodes and ~22 minutes for longer episodes.\n';
+  prompt += 'Respond in the same language the user uses.';
 
   return prompt;
 }
@@ -280,9 +276,7 @@ export function parseActions(text) {
       i++;
       while (i < lines.length && lines[i].includes(':') && !lines[i].trim().startsWith('ACTION:')) {
         const [key, ...rest] = lines[i].split(':');
-        if (rest.length > 0) {
-          params[key.trim()] = rest.join(':').trim();
-        }
+        if (rest.length > 0) params[key.trim()] = rest.join(':').trim();
         i++;
       }
       actions.push({ type: actionType, params });

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { usePlayer } from '../context/PlayerContext.jsx';
 import { SERVER_LIST } from '../data/servers.js';
 import { exportAllData, importAllData, clearAllData } from '../lib/storage.js';
+import { generateBackup, validateBackup, importBackup, confirmReplaceImport, getBackupSummary } from '../lib/services/LibraryBackupService.js';
 import { AI_PROVIDERS, KNOWN_FREE_MODELS, fetchOpenRouterFreeModels, testConnection, maskKey } from '../lib/ai-providers.js';
 import { secureGet, secureSet, secureRemove, clearAllSecure } from '../lib/secure-storage.js';
 
@@ -10,6 +11,8 @@ export default function Settings() {
     global, setServer, setSettings, resetAllProgress, resetCurrentShow,
     show, showToast, setVideoBgUrl, setPlaybackSpeed, playbackSpeed,
     devSettings, setDevSettings, profiles, switchProfile, createProfile, deleteProfile, activeProfileId, aiConfig, setAiConfig,
+    aiMemory, setAiMemory, aiMemoryEnabled, setAiMemoryEnabled,
+    appLockEnabled, setAppLockEnabled, appLockSettings, setAppLockSettings,
   } = usePlayer();
   const [confirm, setConfirm] = useState(null);
   const [videoInput, setVideoInput] = useState(global.settings.videoBgUrl || '');
@@ -437,15 +440,89 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Data management */}
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-        <div className="mb-3 text-sm font-medium text-white">Data</div>
-        <div className="flex flex-wrap gap-2">
-          <button onClick={handleExport} className="rounded-md border border-white/15 px-3 py-2 text-sm text-white/80 transition hover:border-white/40 hover:text-white">Export data</button>
-          <button onClick={() => importRef.current?.click()} className="rounded-md border border-white/15 px-3 py-2 text-sm text-white/80 transition hover:border-white/40 hover:text-white">Import data</button>
-          <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
+      {/* AI Memory */}
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-medium text-white">AI Memory</div>
+          <ToggleRow label="" value={aiMemoryEnabled} onChange={setAiMemoryEnabled} />
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="text-xs text-white/50">Allow AI to remember your viewing preferences and provide personalized recommendations.</div>
+        {aiMemoryEnabled && (
+          <div className="space-y-2">
+            {aiMemory.length === 0 ? (
+              <div className="text-xs text-white/40 font-mono py-3 text-center">No memories stored. The AI will learn from your interactions.</div>
+            ) : (
+              aiMemory.map((mem, i) => (
+                <div key={i} className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs text-white/80 truncate">{mem.content}</div>
+                    <div className="text-[10px] font-mono text-white/30 mt-0.5">{new Date(mem.ts).toLocaleDateString()}</div>
+                  </div>
+                  <button onClick={() => setAiMemory(prev => prev.filter((_, j) => j !== i))} className="ml-2 text-xs text-white/30 hover:text-red-300 transition">×</button>
+                </div>
+              ))
+            )}
+            <div className="flex gap-2">
+              <input type="text" id="new-memory-input" placeholder="e.g. I prefer episodes under 25 minutes" className="flex-1 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white placeholder-white/30 focus:border-white/30 focus:outline-none" />
+              <button onClick={() => {
+                const input = document.getElementById('new-memory-input');
+                if (input?.value.trim()) {
+                  setAiMemory(prev => [...prev, { content: input.value.trim(), ts: Date.now() }]);
+                  input.value = '';
+                  showToast('Memory added');
+                }
+              }} className="rounded-lg border border-white/15 px-3 py-2 text-sm text-white/80 transition hover:border-white/40">ADD</button>
+            </div>
+            {aiMemory.length > 0 && (
+              <button onClick={() => setConfirm({ msg: 'Clear all AI memories?', fn: () => { setAiMemory([]); showToast('AI memories cleared'); } })}
+                className="text-xs text-white/30 hover:text-red-300 transition">Clear all memories</button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* App Lock */}
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-medium text-white">App Lock</div>
+          <ToggleRow label="" value={appLockEnabled} onChange={setAppLockEnabled} />
+        </div>
+        <div className="text-xs text-white/50">Require authentication to access the app. Uses device biometrics (Face ID / Touch ID) when available.</div>
+        {appLockEnabled && (
+          <div className="space-y-3">
+            <ToggleRow label="Lock when backgrounded" desc="Require auth when returning to the app." value={appLockSettings.lockOnBackground} onChange={v => setAppLockSettings({ ...appLockSettings, lockOnBackground: v })} />
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-white/50">Lock after inactivity</div>
+              <select value={appLockSettings.lockAfterInactivity || 0} onChange={e => setAppLockSettings({ ...appLockSettings, lockAfterInactivity: Number(e.target.value) })}
+                className="rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-xs text-white focus:border-white/30 focus:outline-none">
+                <option value={0}>Disabled</option>
+                <option value={60}>1 minute</option>
+                <option value={300}>5 minutes</option>
+                <option value={900}>15 minutes</option>
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Data management - Enhanced */}
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-3">
+        <div className="text-sm font-medium text-white">Library Backup</div>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={handleExport} className="rounded-md border border-white/15 px-3 py-2 text-sm text-white/80 transition hover:border-white/40 hover:text-white">Export backup</button>
+          <button onClick={() => importRef.current?.click()} className="rounded-md border border-white/15 px-3 py-2 text-sm text-white/80 transition hover:border-white/40 hover:text-white">Import backup</button>
+          <input ref={importRef} type="file" accept=".json" className="hidden" onChange={e => {
+            const file = e.target.files?.[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+              const validation = validateBackup(reader.result);
+              if (!validation.valid) { showToast(`Invalid backup: ${validation.errors[0]}`); return; }
+              setConfirm({ msg: `Import ${validation.stats.totalKeys} keys?\n\nSize: ${validation.stats.estimatedSize}\n\nThis will MERGE with existing data.`, fn: () => { const r = importBackup(reader.result, 'merge'); if (r.success) { showToast(`Imported ${r.importedKeys} keys`); setTimeout(() => window.location.reload(), 500); } else showToast(`Import failed: ${r.error}`); } });
+            };
+            reader.readAsText(file); e.target.value = '';
+          }} />
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
           <button onClick={() => setConfirm({ msg: `Reset all progress for ${show.shortName}?`, fn: resetCurrentShow })}
             className="rounded-md border border-white/15 px-3 py-2 text-sm text-white/80 transition hover:border-white/40 hover:text-white">Reset current show</button>
           <button onClick={() => setConfirm({ msg: 'Reset ALL progress across every show? This cannot be undone.', fn: resetAllProgress })}

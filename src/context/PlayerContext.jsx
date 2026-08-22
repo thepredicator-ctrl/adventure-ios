@@ -103,6 +103,18 @@ export function PlayerProvider({ children }) {
   const [playbackSpeed, setPlaybackSpeed] = useState(() => global.settings.defaultSpeed || 1);
   const [sessionStart, setSessionStart] = useState(Date.now());
 
+  // ---- New: AI Memory ----
+  const [aiMemory, setAiMemory] = useState(() => lsGet(profileKey('aiMemory'), []));
+  const [aiMemoryEnabled, setAiMemoryEnabled] = useState(() => lsGet(profileKey('aiMemoryEnabled'), true));
+
+  // ---- New: App Lock ----
+  const [appLockEnabled, setAppLockEnabled] = useState(() => lsGet(profileKey('appLockEnabled'), false));
+  const [appLockSettings, setAppLockSettings] = useState(() => lsGet(profileKey('appLockSettings'), { lockOnBackground: false, lockAfterInactivity: 0 }));
+
+  // ---- New: Easter eggs ----
+  const [easterEggsFound, setEasterEggsFound] = useState(() => lsGet(profileKey('easterEggsFound'), []));
+  const [konamiProgress, setKonamiProgress] = useState(0);
+
   const show = SHOWS[global.showIndex] ?? SHOWS[0];
 
   // ---- Persistence ----
@@ -122,6 +134,11 @@ export function PlayerProvider({ children }) {
   useEffect(() => { lsSet(profileKey('savedAdventures'), savedAdventures); }, [savedAdventures, activeProfileId]);
   useEffect(() => { lsSet(profileKey('aiConfig'), aiConfig); }, [aiConfig, activeProfileId]);
   useEffect(() => { lsSet(profileKey('devSettings'), devSettings); }, [devSettings, activeProfileId]);
+  useEffect(() => { lsSet(profileKey('aiMemory'), aiMemory); }, [aiMemory, activeProfileId]);
+  useEffect(() => { lsSet(profileKey('aiMemoryEnabled'), aiMemoryEnabled); }, [aiMemoryEnabled, activeProfileId]);
+  useEffect(() => { lsSet(profileKey('appLockEnabled'), appLockEnabled); }, [appLockEnabled, activeProfileId]);
+  useEffect(() => { lsSet(profileKey('appLockSettings'), appLockSettings); }, [appLockSettings, activeProfileId]);
+  useEffect(() => { lsSet(profileKey('easterEggsFound'), easterEggsFound); }, [easterEggsFound, activeProfileId]);
   useEffect(() => { lsSet(LS_KEYS.activeProfile, activeProfileId); }, [activeProfileId]);
   useEffect(() => { saveProfiles(profiles); }, [profiles]);
 
@@ -618,6 +635,12 @@ export function PlayerProvider({ children }) {
     generateAdventure, saveAdventure, deleteSavedAdventure,
     // AI
     setAiConfig,
+    // AI Memory
+    aiMemory, setAiMemory, aiMemoryEnabled, setAiMemoryEnabled,
+    // App Lock
+    appLockEnabled, setAppLockEnabled, appLockSettings, setAppLockSettings,
+    // Easter Eggs
+    easterEggsFound, setEasterEggsFound, konamiProgress, setKonamiProgress,
     // Dev
     setDevSettings,
     // Recommendations

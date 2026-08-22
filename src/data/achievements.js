@@ -53,6 +53,11 @@ export const ACHIEVEMENTS = [
   // ---- Hidden / rare ----
   { id: 'hidden_speed', cat: 'hidden',    icon: 'SP', name: 'SPEED DEMON',         desc: 'Set playback speed above 2x',                      check: (s) => s.speedAbove2x,         progress: (s) => s.speedAbove2x ? 1 : 0, hidden: true },
   { id: 'hidden_all',  cat: 'hidden',     icon: '**', name: 'COMPLETIONIST+',      desc: 'Complete all shows and find all hidden achievements', check: (s) => s.hiddenFound,          progress: (s) => s.hiddenFound ? 1 : 0, hidden: true },
+  { id: 'easteregg_konami', cat: 'hidden', icon: 'KK', name: 'KONAMI CODE',         desc: 'Enter the Konami code sequence',                   check: (s) => s.easterEggKonami,      progress: (s) => s.easterEggKonami ? 1 : 0, hidden: true },
+  { id: 'easteregg_terminal', cat: 'hidden', icon: 'TC', name: 'TERMINAL SECRET',   desc: 'Discover the hidden terminal command',              check: (s) => s.easterEggTerminal,    progress: (s) => s.easterEggTerminal ? 1 : 0, hidden: true },
+  { id: 'easteregg_speed', cat: 'hidden', icon: 'SP', name: 'SPEED DEMON',        desc: 'Set playback speed above 2x',                      check: (s) => s.speedAbove2x,         progress: (s) => s.speedAbove2x ? 1 : 0, hidden: true },
+  { id: 'easteregg_midnight', cat: 'hidden', icon: 'MN', name: 'MIDNIGHT VIEWER',   desc: 'Watch an episode at exactly midnight',             check: (s) => s.midnightViewer,        progress: (s) => s.midnightViewer ? 1 : 0, hidden: true },
+  { id: 'easteregg_allserver', cat: 'hidden', icon: 'AS', name: 'FULL COVERAGE',     desc: 'Try every server in one session',                  check: (s) => s.serversTried >= 14,   progress: (s) => Math.min(s.serversTried, 14), hidden: true },
 ];
 
 export const DEFAULT_ACHIEVEMENT_STATS = {
@@ -71,4 +76,7 @@ export const DEFAULT_ACHIEVEMENT_STATS = {
   collectionCount: 0,
   speedAbove2x: false,
   hiddenFound: false,
+  easterEggKonami: false,
+  easterEggTerminal: false,
+  midnightViewer: false,
 };
