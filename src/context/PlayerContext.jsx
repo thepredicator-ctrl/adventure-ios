@@ -6,6 +6,7 @@ import { lsGet, lsSet, lsRemove, LS_KEYS, logSession, getWatchTime, addWatchTime
 import { totalEpisodes, epKey, nextEpisode, isAtLastEp, displaySeasonNumber } from '../lib/episodes.js';
 import { ACHIEVEMENTS, DEFAULT_ACHIEVEMENT_STATS } from '../data/achievements.js';
 import { SHOW_GENRES, MOODS } from '../data/genres.js';
+import { autoPickBestServer, getAutoPickCache } from '../lib/services/AutoServerPicker.js';
 
 const PlayerContext = createContext(null);
 
@@ -102,6 +103,8 @@ export function PlayerProvider({ children }) {
   const [devSettings, setDevSettings] = useState(() => lsGet(profileKey('devSettings'), { logging: false, experimental: [] }));
   const [playbackSpeed, setPlaybackSpeed] = useState(() => global.settings.defaultSpeed || 1);
   const [sessionStart, setSessionStart] = useState(Date.now());
+  const [autoServerStatus, setAutoServerStatus] = useState('idle'); // idle | probing | done
+  const autoPickRef = useRef(null);
 
   // ---- New: AI Memory ----
   const [aiMemory, setAiMemory] = useState(() => lsGet(profileKey('aiMemory'), []));
@@ -116,6 +119,24 @@ export function PlayerProvider({ children }) {
   const [konamiProgress, setKonamiProgress] = useState(0);
 
   const show = SHOWS[global.showIndex] ?? SHOWS[0];
+
+  // ---- Auto server picker ----
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setAutoServerStatus('probing');
+      try {
+        const bestId = await autoPickBestServer(SERVERS);
+        if (!cancelled) {
+          setGlobal(g => ({ ...g, server: bestId }));
+          setAutoServerStatus('done');
+        }
+      } catch {
+        if (!cancelled) setAutoServerStatus('done');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [show.id]); // re-probe when show changes
 
   // ---- Persistence ----
   useEffect(() => { lsSet(profileKey('global'), global); }, [global, activeProfileId]);
@@ -649,6 +670,8 @@ export function PlayerProvider({ children }) {
     showToast,
     // Settings shortcuts
     setPlaybackSpeed,
+    // Auto server
+    autoServerStatus,
   };
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;

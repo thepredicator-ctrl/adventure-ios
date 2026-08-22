@@ -1,5 +1,4 @@
 import { usePlayer } from '../context/PlayerContext.jsx';
-import { SERVER_LIST } from '../data/servers.js';
 import { SHOWS } from '../data/shows.js';
 import { isAtFirstEp, isAtLastEp, displaySeasonNumber, epKey } from '../lib/episodes.js';
 import { pad2 } from '../lib/format.js';
@@ -19,13 +18,13 @@ function fmtTime(sec) {
 export default function Player() {
   const {
     show, global, currentServer, videoUrl,
-    setSeason, setEpisode, setServer, setAutoplay,
+    setSeason, setEpisode, setAutoplay,
     gotoNext, gotoPrev, markCurrentWatched, markUnwatched,
     continueList, jumpTo, watchedMap,
     toggleFavorite, isFavorite,
     savePlaybackPosition, getPlaybackPosition,
     playbackSpeed, setPlaybackSpeed,
-    showToast,
+    showToast, autoServerStatus,
   } = usePlayer();
 
   const atFirst = isAtFirstEp(show, global.season, global.episode);
@@ -52,15 +51,21 @@ export default function Player() {
             Now playing:{' '}
             <span className="text-white">{show.name}</span>
             {' '}— S{pad2(visibleSeason)}E{pad2(global.episode)}
-            <span className="ml-2 font-mono text-[11px] text-white/30">
-              {show.id} · {currentServer.name}
-            </span>
           </p>
         </div>
 
         {/* ── Video iframe ── */}
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-black">
           <div className="relative" style={{ paddingBottom: '56.25%' }}>
+            {/* Loading shimmer while auto-picking */}
+            {autoServerStatus === 'probing' && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                  <span className="animate-pulse text-xs font-mono text-white/50">FINDING BEST SERVER…</span>
+                </div>
+              </div>
+            )}
             <iframe
               key={videoUrl}
               src={videoUrl}
@@ -79,7 +84,7 @@ export default function Player() {
                 <span className="text-xs font-medium text-white/70">RESUME</span>
                 <div className="h-1 w-32 overflow-hidden rounded-full bg-white/10">
                   <div
-                    className="h-full rounded-full bg-white/60"
+                    className="h-full rounded-full bg-white/60 transition-all duration-500"
                     style={{ width: `${Math.min(Number(resumePct), 100)}%` }}
                   />
                 </div>
@@ -112,7 +117,11 @@ export default function Player() {
           {/* Controls bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 px-4 py-3">
             <div className="flex items-center gap-2 text-xs text-white/50">
-              <span className="font-mono text-white/80">{currentServer.name}</span>
+              {/* Auto-picked server indicator */}
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-0.5">
+                <span className={`h-1.5 w-1.5 rounded-full ${autoServerStatus === 'probing' ? 'animate-pulse bg-amber-400' : 'bg-emerald-400'}`} />
+                <span className="font-mono text-white/70">{currentServer.name}</span>
+              </span>
               <span>·</span>
               <span>{show.id}</span>
               {isWatched && (
@@ -126,20 +135,20 @@ export default function Player() {
               <button
                 onClick={gotoPrev}
                 disabled={atFirst}
-                className="rounded-md border border-white/15 px-3 py-1.5 text-sm text-white/80 transition hover:border-white/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                className="rounded-md border border-white/15 px-3 py-1.5 text-sm text-white/80 transition-all duration-200 hover:border-white/40 hover:text-white hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:scale-100"
               >
                 &larr; Prev
               </button>
               <button
                 onClick={() => showToast('PLAY/PAUSE')}
-                className="rounded-md border border-white/40 bg-white/15 px-3 py-1.5 text-sm text-white transition hover:bg-white/25"
+                className="rounded-md border border-white/40 bg-white/15 px-3 py-1.5 text-sm text-white transition-all duration-200 hover:bg-white/25 hover:scale-105 active:scale-95"
               >
                 &#9646;&#9646;
               </button>
               <button
                 onClick={gotoNext}
                 disabled={atLast}
-                className="rounded-md border border-white/15 px-3 py-1.5 text-sm text-white/80 transition hover:border-white/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                className="rounded-md border border-white/15 px-3 py-1.5 text-sm text-white/80 transition-all duration-200 hover:border-white/40 hover:text-white hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:scale-100"
               >
                 Next &rarr;
               </button>
@@ -154,7 +163,7 @@ export default function Player() {
               markCurrentWatched();
               showToast('MARKED WATCHED');
             }}
-            className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left transition hover:border-white/30"
+            className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left transition-all duration-200 hover:border-white/30 hover:bg-white/[0.06] active:scale-[0.98]"
           >
             <div className="text-sm font-medium text-white">&#10003; Mark watched</div>
             <div className="mt-1 text-[11px] text-white/40">S{pad2(visibleSeason)}E{pad2(global.episode)}</div>
@@ -162,7 +171,7 @@ export default function Player() {
           <button
             onClick={() => markUnwatched(show.id, global.season, global.episode)}
             disabled={!isWatched}
-            className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left transition hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-30"
+            className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left transition-all duration-200 hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-30"
           >
             <div className="text-sm font-medium text-white">Mark unwatched</div>
             <div className="mt-1 text-[11px] text-white/40">Clear progress for this ep</div>
@@ -172,7 +181,7 @@ export default function Player() {
               toggleFavorite(show.id, global.season, global.episode);
               showToast(isFav ? 'UNFAVORITED' : 'FAVORITED');
             }}
-            className={`col-span-2 rounded-2xl border p-4 text-left transition hover:border-white/30 sm:col-span-1 ${
+            className={`col-span-2 rounded-2xl border p-4 text-left transition-all duration-200 hover:border-white/30 active:scale-[0.98] sm:col-span-1 ${
               isFav
                 ? 'border-white/40 bg-white/[0.08]'
                 : 'border-white/10 bg-white/[0.03]'
@@ -201,10 +210,10 @@ export default function Player() {
               <button
                 key={sp}
                 onClick={() => setPlaybackSpeed(sp)}
-                className={`rounded-lg border px-3 py-2 text-center text-sm font-mono transition ${
+                className={`rounded-lg border px-3 py-2 text-center text-sm font-mono transition-all duration-200 ${
                   playbackSpeed === sp
-                    ? 'border-white/50 bg-white/15 text-white'
-                    : 'border-white/10 bg-white/[0.02] text-white/60 hover:border-white/30 hover:text-white'
+                    ? 'border-white/50 bg-white/15 text-white scale-105'
+                    : 'border-white/10 bg-white/[0.02] text-white/60 hover:border-white/30 hover:text-white hover:scale-105 active:scale-95'
                 }`}
               >
                 {sp}x
@@ -216,25 +225,31 @@ export default function Player() {
           </div>
         </div>
 
-        {/* ── Season & Episode picker (OptionWheel) ── */}
+        {/* ── Season & Episode picker (OptionWheel) with animations ── */}
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
           <div className="mb-4 flex items-center justify-between">
             <div className="text-sm font-medium text-white">Season &amp; Episode</div>
             <div className="font-mono text-xs text-white/50">
-              <span className="text-white">S{pad2(visibleSeason)}</span>
-              <span className="mx-1 text-white/30">·</span>
-              <span className="text-white">E{pad2(global.episode)}</span>
+              <span className="inline-block rounded-md bg-white/[0.06] px-1.5 py-0.5 text-white transition-all duration-300">
+                S{pad2(visibleSeason)}
+              </span>
+              <span className="mx-1.5 text-white/20">→</span>
+              <span className="inline-block rounded-md bg-white/[0.06] px-1.5 py-0.5 text-white transition-all duration-300">
+                E{pad2(global.episode)}
+              </span>
               <span className="mx-2 text-white/20">|</span>
-              <span className="text-white/40">{seasonEps} eps this season</span>
+              <span className="text-white/40">{seasonEps} eps</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {/* Season wheel */}
-            <div className="relative rounded-xl bg-black/30 p-2">
-              <div className="absolute left-0 right-0 top-2 text-center text-[10px] uppercase tracking-widest text-white/40">
+            <div className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-black/40 p-2 transition-all duration-300 hover:border-white/15">
+              <div className="absolute left-0 right-0 top-2 text-center text-[10px] uppercase tracking-widest text-white/30">
                 Season
               </div>
+              {/* Animated glow bar on the left edge */}
+              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-transparent via-fuchsia-500/40 to-transparent" />
               <div className="h-[260px]">
                 <OptionWheel
                   key={`season-wheel-${show.id}-${global.season}`}
@@ -258,10 +273,12 @@ export default function Player() {
             </div>
 
             {/* Episode wheel */}
-            <div className="relative rounded-xl bg-black/30 p-2">
-              <div className="absolute left-0 right-0 top-2 text-center text-[10px] uppercase tracking-widest text-white/40">
+            <div className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-black/40 p-2 transition-all duration-300 hover:border-white/15">
+              <div className="absolute left-0 right-0 top-2 text-center text-[10px] uppercase tracking-widest text-white/30">
                 Episode
               </div>
+              {/* Animated glow bar on the right edge */}
+              <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-transparent via-fuchsia-500/40 to-transparent" />
               <div className="h-[260px]">
                 <OptionWheel
                   key={`episode-wheel-${show.id}-${global.season}-${global.episode}`}
@@ -290,30 +307,6 @@ export default function Player() {
           </div>
         </div>
 
-        {/* ── Server picker ── */}
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="text-sm font-medium text-white">Embed server</div>
-            <div className="text-xs text-white/40">If a server has no source, try another · keys 1–9</div>
-          </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {SERVER_LIST.map(s => (
-              <button
-                key={s.id}
-                onClick={() => setServer(s.id)}
-                className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
-                  global.server === s.id
-                    ? 'border-white/60 bg-white/15 text-white'
-                    : 'border-white/10 bg-white/[0.02] text-white/70 hover:border-white/30'
-                }`}
-              >
-                <div className="font-mono text-xs text-white/40">0{s.id}</div>
-                <div className="mt-0.5 font-medium">{s.name}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* ── Auto Next toggle ── */}
         <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-5">
           <div>
@@ -326,10 +319,10 @@ export default function Player() {
             onClick={() => setAutoplay(!global.autoplay)}
             role="switch"
             aria-checked={global.autoplay}
-            className={`relative h-7 w-12 rounded-full transition ${global.autoplay ? 'bg-white' : 'bg-white/15'}`}
+            className={`relative h-7 w-12 rounded-full transition-all duration-300 ${global.autoplay ? 'bg-white' : 'bg-white/15'}`}
           >
             <span
-              className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${global.autoplay ? 'left-6' : 'left-1'}`}
+              className={`absolute top-1 h-5 w-5 rounded-full bg-black transition-all duration-300 ${global.autoplay ? 'left-6' : 'left-1'}`}
             />
           </button>
         </div>
@@ -361,7 +354,7 @@ export default function Player() {
             </div>
             <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/10">
               <div
-                className="h-full rounded-full bg-white/40 transition-all"
+                className="h-full rounded-full bg-white/40 transition-all duration-500"
                 style={{ width: `${Math.min((savedPos.position / savedPos.duration) * 100, 100)}%` }}
               />
             </div>
@@ -384,7 +377,7 @@ export default function Player() {
                   <button
                     key={`${entry.showId}-${entry.season}-${entry.episode}-${i}`}
                     onClick={() => jumpTo(entry.showId, entry.season, entry.episode)}
-                    className="group flex w-32 shrink-0 flex-col gap-2 rounded-lg border border-white/10 bg-white/[0.02] p-2 text-left transition hover:border-white/40"
+                    className="group flex w-32 shrink-0 flex-col gap-2 rounded-lg border border-white/10 bg-white/[0.02] p-2 text-left transition-all duration-200 hover:border-white/40 hover:scale-[1.03] active:scale-95"
                   >
                     <ShowIcon show={s} size={28} />
                     <div className="min-w-0">
