@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePlayer } from '../context/PlayerContext.jsx';
 import { SHOWS } from '../data/shows.js';
-import { SECTIONS } from '../data/sections.js';
+import { SECTIONS, getSectionIndex } from '../data/sections.js';
 import { totalEpisodes, epKey, displaySeasonNumber } from '../lib/episodes.js';
 import { THEMES } from '../data/themes.js';
 import { SHOW_GENRES, MOODS } from '../data/genres.js';
@@ -34,11 +34,7 @@ const COMMANDS = [
   { id: 'watchlist', label: 'Open watchlist', icon: 'WL', category: 'navigation' },
 ];
 
-// Section index lookup for navigation
-function getSectionIndex(label) {
-  const idx = SECTIONS.findIndex(s => s.label === label);
-  return idx >= 0 ? idx : null;
-}
+// getSectionIndex is imported from sections.js
 
 export default function CommandPalette({ open, onClose, onNavigate }) {
   const {
@@ -95,19 +91,19 @@ export default function CommandPalette({ open, onClose, onNavigate }) {
       case 'random': gotoRandomEpisode(); break;
       case 'next': gotoNext(); break;
       case 'prev': gotoPrev(); break;
-      case 'adventure': onNavigate?.(getSectionIndex('Adventure Mode') ?? 13); break;
+      case 'adventure': onNavigate?.(getSectionIndex('Adventure Mode') ?? 11); break;
       case 'mission': onNavigate?.(getSectionIndex('Mission Control') ?? 0); break;
       case 'terminal': onNavigate?.(getSectionIndex('Terminal') ?? 18); break;
       case 'stats': onNavigate?.(getSectionIndex('Stats') ?? 8); break;
       case 'awards': onNavigate?.(getSectionIndex('Awards') ?? 9); break;
-      case 'settings': onNavigate?.(getSectionIndex('Settings') ?? 11); break;
-      case 'ai': onNavigate?.(getSectionIndex('Adventure AI') ?? 14); break;
+      case 'settings': onNavigate?.(getSectionIndex('Settings') ?? 15); break;
+      case 'ai': onNavigate?.(getSectionIndex('Adventure AI') ?? 10); break;
       case 'analysis': onNavigate?.(getSectionIndex('Show Analysis') ?? 5); break;
       case 'timeline': onNavigate?.(getSectionIndex('Show Timeline') ?? 6); break;
       case 'rewatch': onNavigate?.(getSectionIndex('Smart Rewatch') ?? 7); break;
       case 'intel': onNavigate?.(getSectionIndex('Episode Intel') ?? 3); break;
-      case 'health': onNavigate?.(getSectionIndex('Provider Health') ?? 15); break;
-      case 'model_lab': onNavigate?.(getSectionIndex('AI Model Lab') ?? 16); break;
+      case 'health': onNavigate?.(getSectionIndex('Provider Health') ?? 13); break;
+      case 'model_lab': onNavigate?.(getSectionIndex('AI Model Lab') ?? 12); break;
       case 'theme': {
         const idx = THEMES.findIndex(t => t.id === global.theme);
         const next = THEMES[(idx + 1) % THEMES.length];
