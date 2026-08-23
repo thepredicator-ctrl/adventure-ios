@@ -91,19 +91,19 @@ export default function CommandPalette({ open, onClose, onNavigate }) {
       case 'random': gotoRandomEpisode(); break;
       case 'next': gotoNext(); break;
       case 'prev': gotoPrev(); break;
-      case 'adventure': onNavigate?.(getSectionIndex('Adventure Mode') ?? 11); break;
+      case 'adventure': onNavigate?.(getSectionIndex('Adventure Mode') ?? 16); break;
       case 'mission': onNavigate?.(getSectionIndex('Mission Control') ?? 0); break;
-      case 'terminal': onNavigate?.(getSectionIndex('Terminal') ?? 18); break;
-      case 'stats': onNavigate?.(getSectionIndex('Stats') ?? 8); break;
-      case 'awards': onNavigate?.(getSectionIndex('Awards') ?? 9); break;
-      case 'settings': onNavigate?.(getSectionIndex('Settings') ?? 15); break;
-      case 'ai': onNavigate?.(getSectionIndex('Adventure AI') ?? 10); break;
-      case 'analysis': onNavigate?.(getSectionIndex('Show Analysis') ?? 5); break;
-      case 'timeline': onNavigate?.(getSectionIndex('Show Timeline') ?? 6); break;
-      case 'rewatch': onNavigate?.(getSectionIndex('Smart Rewatch') ?? 7); break;
+      case 'terminal': onNavigate?.(getSectionIndex('Terminal') ?? 22); break;
+      case 'stats': onNavigate?.(getSectionIndex('Stats') ?? 10); break;
+      case 'awards': onNavigate?.(getSectionIndex('Awards') ?? 11); break;
+      case 'settings': onNavigate?.(getSectionIndex('Settings') ?? 27); break;
+      case 'ai': onNavigate?.(getSectionIndex('AI Assistant') ?? 14); break;
+      case 'analysis': onNavigate?.(getSectionIndex('Show Analysis') ?? 8); break;
+      case 'timeline': onNavigate?.(getSectionIndex('Show Timeline') ?? 9); break;
+      case 'rewatch': onNavigate?.(getSectionIndex('Smart Rewatch') ?? 10); break;
       case 'intel': onNavigate?.(getSectionIndex('Episode Intel') ?? 3); break;
-      case 'health': onNavigate?.(getSectionIndex('Provider Health') ?? 13); break;
-      case 'model_lab': onNavigate?.(getSectionIndex('AI Model Lab') ?? 12); break;
+      case 'health': onNavigate?.(getSectionIndex('Provider Health') ?? 21); break;
+      case 'model_lab': onNavigate?.(getSectionIndex('AI Model Lab') ?? 17); break;
       case 'theme': {
         const idx = THEMES.findIndex(t => t.id === global.theme);
         const next = THEMES[(idx + 1) % THEMES.length];
@@ -114,7 +114,7 @@ export default function CommandPalette({ open, onClose, onNavigate }) {
         toggleFavorite(show.id, global.season, global.episode);
         showToast(isFavorite(show.id, global.season, global.episode) ? 'FAVORITED' : 'UNFAVORITED'); break;
       case 'watched': markCurrentWatched(); break;
-      case 'watchlist': onNavigate?.(getSectionIndex('Shows') ?? 4); break;
+      case 'watchlist': onNavigate?.(getSectionIndex('Shows') ?? 5); break;
       default:
         if (id.startsWith('show:')) {
           const s = SHOWS.find(sh => sh.id === id.replace('show:', ''));
